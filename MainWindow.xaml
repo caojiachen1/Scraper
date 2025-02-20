@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Scraper.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Scraper"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Scraper">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" RequestedTheme="Dark">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- Title bar -->
+            <RowDefinition Height="Auto"/>  <!-- Menu bar -->
+            <RowDefinition Height="Auto"/>  <!-- URL input -->
+            <RowDefinition Height="*"/>    <!-- TreeView -->
+        </Grid.RowDefinitions>
+
+        <!-- Title Bar -->
+        <Grid Grid.Row="0">
+            <StackPanel Orientation="Horizontal" Margin="12,8,0,8" VerticalAlignment="Center">
+                <Image Source="Assets/StoreLogo.png" Width="16" Height="16" Margin="0,0,8,0"/>
+                <TextBlock Text="Scraper" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Foreground="#E6E6E6"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Menu Bar -->
+        <Grid Grid.Row="1" Background="#1E1E1E">
+            <MenuBar Background="Transparent" Padding="2,0" HorizontalAlignment="Left">
+                <MenuBarItem Title="File">
+                    <MenuFlyoutItem Text="Open" Icon="OpenFile" Click="OpenMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="O" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Export" Icon="Download" Click="ExportMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="E" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Clear" Icon="Clear" Click="ClearMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="L" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator/>
+                    <MenuFlyoutItem Text="Exit" Icon="Cancel" Click="ExitMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="Q" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                </MenuBarItem>
+                <MenuBarItem Title="View">
+                    <MenuFlyoutItem Text="Expand All" Icon="Add" Click="ExpandAllMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="E" Modifiers="Control,Shift"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Collapse All" Icon="Remove" Click="CollapseAllMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="C" Modifiers="Control,Shift"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                </MenuBarItem>
+                <MenuBarItem Title="Help">
+                    <MenuFlyoutItem Text="About" Icon="Help" Click="AboutMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="F1"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                </MenuBarItem>
+            </MenuBar>
+        </Grid>
+
+        <Grid Grid.Row="2" Padding="12" Background="#1E1E1E">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="UrlTextBox" PlaceholderText="Enter website URL..." Margin="0,0,8,0" KeyDown="UrlTextBox_KeyDown"/>
+            <Button x:Name="ScrapeButton" Grid.Column="1" Click="ScrapeButton_Click" Style="{StaticResource AccentButtonStyle}">Scrape</Button>
+        </Grid>
+
+        <TreeView x:Name="WebsiteTreeView" Grid.Row="3" Padding="12" Background="#1E1E1E" DoubleTapped="WebsiteTreeView_DoubleTapped" RightTapped="WebsiteTreeView_RightTapped" KeyDown="WebsiteTreeView_KeyDown">
+            <TreeView.ItemTemplate>
+                <DataTemplate x:DataType="local:HtmlNode">
+                    <TreeViewItem ItemsSource="{x:Bind Children}" IsExpanded="False">
+                        <TextBlock Text="{x:Bind DisplayText}" Foreground="#E6E6E6"/>
+                    </TreeViewItem>
+                </DataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <ProgressRing x:Name="LoadingIndicator" Grid.Row="2" Width="50" Height="50" IsActive="False"/>
+    </Grid>
+</Window>

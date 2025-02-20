@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Scraper (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Scraper (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
