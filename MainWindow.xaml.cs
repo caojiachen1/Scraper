@@ -4,24 +4,79 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.IO;
 using HtmlAgilityPack;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Windowing;
 using Windows.UI;
+using Windows.Storage;
 
 namespace Scraper
 {
     public sealed partial class MainWindow : Window
     {
         private readonly HttpClient _httpClient;
+        private readonly List<UrlHistoryItem> _urlHistory = new List<UrlHistoryItem>();
+        private int _currentHistoryIndex = -1;
+
+        private async Task LoadUrlHistoryAsync()
+        {
+            try
+            {
+                string historyFilePath = Path.Combine(AppContext.BaseDirectory, "url_history.json");
+                if (File.Exists(historyFilePath))
+                {
+                    string content = await File.ReadAllTextAsync(historyFilePath);
+                    var history = System.Text.Json.JsonSerializer.Deserialize<List<UrlHistoryItem>>(content);
+                    if (history != null)
+                    {
+                        _urlHistory.Clear();
+                        _urlHistory.AddRange(history);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // If there's any other error, continue with empty history
+            }
+        }
+
+        private async Task SaveUrlHistoryAsync()
+        {
+            try
+            {
+                string historyFilePath = Path.Combine(AppContext.BaseDirectory, "url_history.json");
+                var content = System.Text.Json.JsonSerializer.Serialize(_urlHistory, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(historyFilePath, content);
+            }
+            catch (Exception ex)
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = "Error",
+                    Content = $"Failed to save URL history: {ex.Message}",
+                    CloseButtonText = "OK",
+                    XamlRoot = this.Content.XamlRoot
+                };
+                await dialog.ShowAsync();
+            }
+        }
 
         public MainWindow()
-        {
+        {            
             this.InitializeComponent();
             SetDarkModeTitleBar();
             _httpClient = new HttpClient();
+            // Load URL history asynchronously after window initialization
+            Task.Run(async () => await LoadUrlHistoryAsync());
+        }
+
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {            
+            Task.Run(async () => await SaveUrlHistoryAsync()).Wait(); // Ensure history is saved before exiting
+            Application.Current.Exit();
         }
 
         private async void OpenMenuItem_Click(object sender, RoutedEventArgs e)
@@ -70,11 +125,6 @@ namespace Scraper
             }
         }
 
-        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Exit();
-        }
-
         private void ExpandAllMenuItem_Click(object sender, RoutedEventArgs e)
         {
             SetTreeViewItemsExpansion(true);
@@ -101,9 +151,27 @@ namespace Scraper
 
         private void UrlTextBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
-            if (e.Key == Windows.System.VirtualKey.Enter)
+            switch (e.Key)
             {
-                ScrapeButton_Click(sender, new RoutedEventArgs());
+                case Windows.System.VirtualKey.Enter:
+                    ScrapeButton_Click(sender, new RoutedEventArgs());
+                    break;
+                case Windows.System.VirtualKey.Up:
+                    if (_urlHistory.Count > 0)
+                    {
+                        _currentHistoryIndex = Math.Min(_currentHistoryIndex + 1, _urlHistory.Count - 1);
+                        UrlTextBox.Text = _urlHistory[_currentHistoryIndex].Url;
+                        UrlTextBox.SelectionStart = UrlTextBox.Text.Length;
+                    }
+                    break;
+                case Windows.System.VirtualKey.Down:
+                    if (_urlHistory.Count > 0)
+                    {
+                        _currentHistoryIndex = Math.Max(_currentHistoryIndex - 1, -1);
+                        UrlTextBox.Text = _currentHistoryIndex >= 0 ? _urlHistory[_currentHistoryIndex].Url : string.Empty;
+                        UrlTextBox.SelectionStart = UrlTextBox.Text.Length;
+                    }
+                    break;
             }
         }
 
@@ -148,6 +216,16 @@ namespace Scraper
                 UrlTextBox.Text = url;
             }
 
+            // Add URL and scraping result to history
+            var rootNodes = WebsiteTreeView.ItemsSource as IEnumerable<HtmlNode>;
+            var historyItem = new UrlHistoryItem(url, rootNodes?.ToList());
+            var existingIndex = _urlHistory.FindIndex(x => x.Url == url);
+            if (existingIndex != -1)
+            {
+                _urlHistory.RemoveAt(existingIndex);
+            }
+            _urlHistory.Insert(0, historyItem);
+            _currentHistoryIndex = -1;
             try
             {
                 LoadingIndicator.IsActive = true;
