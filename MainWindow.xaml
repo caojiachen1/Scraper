@@ -11,10 +11,14 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" RequestedTheme="Dark">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>  <!-- Title bar -->
-            <RowDefinition Height="Auto"/>  <!-- Menu bar -->
-            <RowDefinition Height="Auto"/>  <!-- URL input -->
-            <RowDefinition Height="*"/>    <!-- TreeView -->
+            <RowDefinition Height="Auto"/>
+            <!-- Title bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Menu bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- URL input -->
+            <RowDefinition Height="*"/>
+            <!-- TreeView -->
         </Grid.RowDefinitions>
 
         <!-- Title Bar -->
@@ -52,6 +56,12 @@
                     </MenuFlyoutItem>
                 </MenuBarItem>
                 <MenuBarItem Title="View">
+                    <MenuFlyoutItem Text="Settings" Icon="Setting" Click="SettingsMenuItem_Click">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="S" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator/>
                     <MenuFlyoutItem Text="Expand All" Icon="Add" Click="ExpandAllMenuItem_Click">
                         <MenuFlyoutItem.KeyboardAccelerators>
                             <KeyboardAccelerator Key="E" Modifiers="Control,Shift"/>

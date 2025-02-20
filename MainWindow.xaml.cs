@@ -65,7 +65,7 @@ namespace Scraper
         }
 
         public MainWindow()
-        {            
+        {
             this.InitializeComponent();
             SetDarkModeTitleBar();
             _httpClient = new HttpClient();
@@ -74,7 +74,7 @@ namespace Scraper
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
-        {            
+        {
             Task.Run(async () => await SaveUrlHistoryAsync()).Wait(); // Ensure history is saved before exiting
             Application.Current.Exit();
         }
@@ -149,6 +149,19 @@ namespace Scraper
             _ = dialog.ShowAsync();
         }
 
+        private async void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var settingsPage = new SettingsPage();
+            var dialog = new ContentDialog
+            {
+                Title = "Settings",
+                Content = settingsPage,
+                CloseButtonText = "Close",
+                XamlRoot = this.Content.XamlRoot
+            };
+            await dialog.ShowAsync();
+        }
+
         private void UrlTextBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
             switch (e.Key)
@@ -209,7 +222,7 @@ namespace Scraper
             }
 
             string url = UrlTextBox.Text.Trim();
-            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && 
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
                 !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
                 url = "https://" + url;
@@ -353,19 +366,19 @@ namespace Scraper
                                 HorizontalAlignment = HorizontalAlignment.Right,
                                 VerticalAlignment = VerticalAlignment.Top
                             };
-                            
+
                             copyButton.Click += async (s, args) =>
                             {
                                 var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
                                 dataPackage.SetText(pythonCode);
                                 Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
-                            
+
                                 // Show feedback
                                 copyButton.Content = new SymbolIcon(Symbol.Accept);
                                 await Task.Delay(1000);
                                 copyButton.Content = new SymbolIcon(Symbol.Copy);
                             };
-                            
+
                             var codeBlock = new TextBlock
                             {
                                 Text = pythonCode,
@@ -374,13 +387,13 @@ namespace Scraper
                                 Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.LightGreen),
                                 Padding = new Thickness(10)
                             };
-                            
+
                             var codeBlockContainer = new Border
                             {
                                 Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 30, 30, 30)),
                                 Child = codeBlockGrid
                             };
-                            
+
                             codeBlockGrid.Children.Add(codeBlock);
                             codeBlockGrid.Children.Add(copyButton);
                             stackPanel.Children.Add(codeBlockContainer);
@@ -509,7 +522,7 @@ namespace Scraper
             if (string.IsNullOrEmpty(treeNode.DisplayText)) return;
 
             var displayText = treeNode.DisplayText.Trim();
-            
+
             // Handle text nodes
             if (!displayText.StartsWith("<"))
             {
@@ -705,11 +718,11 @@ namespace Scraper
             var tagStart = elementText.IndexOf('<');
             var tagEnd = elementText.IndexOf('>');
             if (tagStart == -1 || tagEnd == -1) return string.Empty;
-        
+
             var tagContent = elementText.Substring(tagStart + 1, tagEnd - tagStart - 1).Trim();
             var parts = tagContent.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var tagName = parts[0];
-        
+
             var code = new System.Text.StringBuilder();
             code.AppendLine("from bs4 import BeautifulSoup");
             code.AppendLine("import requests");
@@ -731,11 +744,11 @@ namespace Scraper
             code.AppendLine("        soup = BeautifulSoup(response.text, 'html.parser')");
             code.AppendLine("");
             code.AppendLine("        # Find all matching elements");
-        
+
             // Generate the find method based on tag and attributes
             var findMethod = $"find_all('{tagName}'";
             var attrs = new System.Collections.Generic.List<string>();
-        
+
             // Parse attributes
             for (int i = 1; i < parts.Length; i++)
             {
@@ -748,13 +761,13 @@ namespace Scraper
                     attrs.Add($"\"{name}\": \"{value}\"");
                 }
             }
-        
+
             if (attrs.Count > 0)
             {
                 findMethod += $", attrs={{{string.Join(", ", attrs)}}}";
             }
             findMethod += ")";
-        
+
             code.AppendLine($"        elements = soup.{findMethod}");
             code.AppendLine("");
             code.AppendLine("        # Extract data from elements");
@@ -785,7 +798,7 @@ namespace Scraper
             code.AppendLine("    if df is not None:");
             code.AppendLine("        print('\nFirst few rows of scraped data:')");
             code.AppendLine("        print(df.head())");
-        
+
             return code.ToString();
         }
     }
